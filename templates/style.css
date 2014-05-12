@@ -1,0 +1,97 @@
+/*
+ * Seagull Gallery
+ */
+
+body {
+	font-family: Helvetica,Arial,sans-serif !important;
+	font-size: 75%;
+	background: #F7F7F7;
+	padding: 0 10px;
+}
+h1 {
+	margin-left: 0;
+	font-size: 150%;
+}
+
+form input:read-only, form select:read-only, form textarea:read-only {
+	background-image: none;
+	background: #EEE;
+}
+
+.b-td__title {
+	font-weight: bold;
+}
+.col-edit {
+	cursor: pointer;
+	vertical-align: top;
+}
+
+/* tablesort */
+.tsort .tsort__dragHandle {
+	padding: 0 5px;
+	cursor: move;
+}
+.b-table tbody tr:hover .tsort__dragHandle {
+	background: transparent url('../../seagulllibrary/css/images/move.png') no-repeat center center;
+}
+.tsort .tsort__col-edit {
+	background: url('../../seagulllibrary/css/images/gtk-edit.png') no-repeat center center;
+	cursor: pointer;
+}
+.tsort .tsort__dragClass td {
+/*	background: #FFEEB2;*/
+}
+.tsort .showDragHandle {
+	background: transparent url('../../seagulllibrary/css/images/move.png') no-repeat center center;
+}
+.b-table tbody tr:hover .img-download {
+	display: block;
+	width: 16px;
+	height: 16px;
+	position: absolute;
+	margin: 4px;
+	background: url('../../seagulllibrary/css/images/save_16.gif') no-repeat center center;
+}
+
+/* upload images */
+.b-progress {
+	position: relative;
+	display: none;
+	width: 300px;
+	margin: 5px 0;
+	padding: 1px;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+}
+.b-progress__bar {
+	background: url('../../seagulllibrary/css/images/upload.gif') repeat-x 0 0;
+	width: 70%;
+	height: 18px;
+	border-radius: 3px;
+}
+.b-progress__percent {
+	position: absolute;
+	display: block;
+	text-align: center;
+	top: 3px;
+	width: 100%;
+}
+
+/* timepicker */
+.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+.ui-timepicker-div dl { text-align: left; }
+.ui-timepicker-div dl dt { height: 25px; margin-bottom: -25px; }
+.ui-timepicker-div dl dd { margin: 0 10px 10px 65px; }
+.ui-timepicker-div td { font-size: 90%; }
+.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+
+.b-btn-imgs-del {
+	color: #888;
+}
+
+.tc {
+	text-align: center;
+}
+.tr {
+	text-align: right;
+}

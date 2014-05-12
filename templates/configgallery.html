@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>[+title+]</title>
+	[+css+]
+	<link rel="stylesheet" type="text/css" href="../assets/modules/seagulllibrary/css/jPicker-1.1.6.min.css" />
+</head>
+<body>
+	<div id="js-msg" class="msg [+msgType+]"><div class="msg__text">[+msg+]</div></div>
+	<h1><a href="#" onclick="postForm(); return false;">[+title+]</a> > <a href="#" onclick="postForm('editGallery'); return false;">Галерея #[+gallery_id+]</a> > Настройки</h1>
+	<ul class="actionButtons" style="right: 0pt; top: 10px;">
+		<li><a href="#" onclick="postForm('editGallery'); return false;"><img alt="icons_delete_document" src="/assets/modules/seagulllibrary/css/images/back.png" /> назад</a></li>
+		<li><a href="#" onclick="$('#f-gallery-config').submit(); return false;"><img src="media/style/MODxCarbon/images/icons/save.png" alt="icons_save" /> Сохранить настройки</a></li>
+		<li><a id="btn-resize-thumbs" href="#"><img src="media/style/MODxCarbon/images/icons/save.png" alt="icons_save" /> Пересчитать миниатюры</a></li>
+	</ul>
+	<form id="f-gallery-config" class="ajaxform" method="post">
+		[+form_gallery+]
+		<input name="itemID" type="hidden" value="[+gallery_id+]" />
+	</form>
+	<form name="module" method="post">
+		<input name="cmd" type="hidden" value="" />
+		<input id="ff-gid" name="itemID" type="hidden" value="[+gallery_id+]" />
+	</form>
+
+	<a id="create-variable" style="margin:7px 0 0 10px; float:right" href="#" onclick="return false;">Добавить переменную</a>
+
+	[+addvariable+]
+	[+js+]
+	<script type="text/javascript" src="../assets/modules/[+nameModule+]/js/[+nameModule+]_config.js"></script>
+	<script type="text/javascript" src="../assets/modules/seagulllibrary/js/jpicker-1.1.6.min.js"></script>
+</body>
+</html>
