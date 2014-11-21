@@ -41,7 +41,7 @@ $(document).ready(function() {
 	});
 
 //	SELECT IMAGES ------------------------
-	$('.img_select').click(function() {
+	$(document).on('click', '.img_select', function() {
 		var selTR = $(this).parent('td').parent('tr');
 		var selID = selTR.prop('id');
 
@@ -215,7 +215,7 @@ $(document).ready(function() {
 
 	});
 */
-	
+
 });
 
 Array.prototype.in_array = function(p_val) {

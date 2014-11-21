@@ -20,18 +20,17 @@ class CSeagullGallery extends CSeagullModule {
 	var $tables = array();
 	var $nameModule = 'seagullgallery';
 	const mailto = 'maxcpp@gmail.com';
-	
+
 	function __construct() { //--------------------------------
 		$args = func_get_args();
 		$this->msg = $args[0];
-		$modx = $args[1];
 
 		$this->config = new CConfig($this->msg);
 		$this->config->getVariables($this->nameModule);
 		$this->config->labelParam .= ' style="width:240px"';
 
-		if (isset($modx))
-			$this->modx = $modx;
+		if (isset($args[1]))
+			$this->modx = $args[1];
 		$this->ph['title'] = 'Менеджер галерей';
 		$this->ph['nameModule'] = $this->nameModule;
 
@@ -68,7 +67,7 @@ class CSeagullGallery extends CSeagullModule {
 		$columns['type_view'] =	array(
 					'title'=>'Внешний вид галереи',
 					'form_fieldType'=>'select',
-					'values'=>array('thumbs'=>'Миниатюры с увеличением', 'images'=>'Большие изображения', 'image_and_thumbs'=>'Большое изображение и прокручиваемый список миниатюр'),
+					'values'=>array('thumbs'=>'Миниатюры с увеличением', 'images'=>'Большие изображения', 'image_and_thumbs'=>'Большое изображение и прокручиваемый список миниатюр', 'slider'=>'Слайдер'),
 					'table_hidden'=>true
 					);
 
@@ -446,8 +445,8 @@ class CSeagullGallery extends CSeagullModule {
 
 				$r = $this->tables['galleries']->updateRow($aData['itemID'], $aData, DONT_UPDATE_ALL_FIELDS_OF_TABLE);
 
-				$this->check_dir($aData['path']);
-				$this->check_dir('/thumb'.$aData['path']);
+				$this->check_dirs($aData['path']);
+				$this->check_dirs('/thumb'.$aData['path']);
 
 				if ($r)
 					$this->msg->setOk('Галерея сохранена');
@@ -462,14 +461,14 @@ class CSeagullGallery extends CSeagullModule {
 
 				if ($r) {
 					$gallery_id = retr_sql('SELECT `id` FROM '.$this->tables['galleries']->table." WHERE `title`='".$aData['title']."'");
-					
+
 					$aData = array();
 					$aData['path'] = $this->createPath($gallery_id);
 					$aData['title'] = $tempname;
 					$r = $this->tables['galleries']->updateRow($gallery_id, $aData, DONT_UPDATE_ALL_FIELDS_OF_TABLE);
 
-					$this->check_dir($aData['path']);
-					$this->check_dir('/thumb'.$aData['path']);
+					$this->check_dirs($aData['path']);
+					$this->check_dirs('/thumb'.$aData['path']);
 
 					if ($r) {
 						$this->msg->setOk('Галерея добавлена');
@@ -534,9 +533,9 @@ class CSeagullGallery extends CSeagullModule {
 			$imgData['title'] = '';
 			$imgData['description'] = '';
 			$imgData['alt'] = '';
-			$imgData['date_update'] = mktime();
+			$imgData['date_update'] = time();
 			$r = $this->tables['images']->updateRow($img_id, $imgData, DONT_UPDATE_ALL_FIELDS_OF_TABLE);
-			
+
 			if ($r) {
 				$msgs .= $img['name'].'<br>';
 				$img = $this->getImage($img_id);
@@ -572,7 +571,7 @@ class CSeagullGallery extends CSeagullModule {
 //				$this->msg->setError('Введите "Название"');
 
 //			$aData['published'] = (isset($aData['published']) and $aData['published']==1) ? 1 : 0;
-			
+
 			if (!$this->msg->hold) {
 
 				if ($imgfile) {
@@ -584,7 +583,7 @@ class CSeagullGallery extends CSeagullModule {
 
 						if ($imgData) {
 							$thumbData = $this->createThumb($aData['id'], array('name'=>$imgData['file']));
-							
+
 							if ($thumbData)
 								$imgData = array_merge($imgData, $thumbData);
 							else
@@ -600,7 +599,7 @@ class CSeagullGallery extends CSeagullModule {
 				$imgData['title'] = $aData['title'];
 				$imgData['description'] = $aData['description'];
 				$imgData['alt'] = $aData['alt'];
-				$imgData['date_update'] = mktime();
+				$imgData['date_update'] = time();
 				unset($imgData['sort_id']);
 				$r = $this->tables['images']->updateRow($aData['id'], $imgData, DONT_UPDATE_ALL_FIELDS_OF_TABLE);
 
@@ -638,7 +637,7 @@ class CSeagullGallery extends CSeagullModule {
 				$newfilename = $image['name'];
 			else
 				$newfilename = $newfilename.'.'.$ext;
-			
+
 			list($width, $height) = getimagesize($image['tmp_name']);
 
 			if ($width > $newwidth) {
@@ -698,7 +697,7 @@ class CSeagullGallery extends CSeagullModule {
 			$this->max_height = $this->config->image->maxHeight;
 
 		$path = SITE_ROOT.$this->config->galleryDir.$this->path;
-		$this->check_dir($this->path);
+		$this->check_dirs($this->path);
 
 		$filename = $img_id;
 		$filename = $this->resizeImage($source_img, $path, $filename, $this->max_width, $this->max_height, $this->max_priority_side);
@@ -709,7 +708,7 @@ class CSeagullGallery extends CSeagullModule {
 			$imgData['title'] = '';
 			$imgData['size'] = filesize(SITE_ROOT.$this->config->galleryDir.$this->path.'/'.$filename);
 			$imgData['file'] = $filename;
-			$imgData['date_update'] = mktime();
+			$imgData['date_update'] = time();
 			return $imgData;
 //			$r = $this->tables['images']->updateRow($img_id, $update, DONT_UPDATE_ALL_FIELDS_OF_TABLE);
 
@@ -736,7 +735,7 @@ class CSeagullGallery extends CSeagullModule {
 
 		$path_thumb = SITE_ROOT.$this->config->galleryDir.'/thumb'.$this->path;
 
-		$this->check_dir('/thumb'.$this->path);
+		$this->check_dirs('/thumb'.$this->path);
 
 		$source_img['tmp_name'] = SITE_ROOT.$this->config->galleryDir.$this->path.'/'.$source_img['name'];
 		$filename_thumb = $img_id.'_'.$this->thumb_width.'x'.$this->thumb_height;
@@ -819,7 +818,7 @@ class CSeagullGallery extends CSeagullModule {
 
 //		Беру новые значения для миниатюр
 		$aGallery = retr_sql("SELECT `thumb_width`, `thumb_height`, `thumb_priority_side`, `path` FROM ".$this->tables['galleries']->table." WHERE `id`=$gid");
-//		
+//
 		if ($aGallery['thumb_width']==0)
 			$aGallery['thumb_width'] = $this->config->thumb->maxWidth;
 
@@ -828,34 +827,38 @@ class CSeagullGallery extends CSeagullModule {
 
 		$path_imgs = SITE_ROOT.$this->config->galleryDir.$aGallery['path'].'/';
 		$path_thumb = SITE_ROOT.$this->config->galleryDir.'/thumb'.$aGallery['path'];
-//		Удаляю все миниатюры
-		cleardir($path_thumb, CLEAR_FILES);
-//		$this->check_dir('/thumb'.$aGallery['path']);
+		$r = $this->check_dirs('/thumb'.$aGallery['path']);
 
-		foreach ($aImages as $img) {
-			$source_img['tmp_name'] = $path_imgs.$img['file'];
-			$source_img['name'] = $img['file'];
+		if ($r) {
+//			Удаляю все миниатюры
+			cleardir($path_thumb, CLEAR_FILES);
 
-			$filename_thumb = $img['id'].'_'.$aGallery['thumb_width'].'x'.$aGallery['thumb_height'];
-			$filename_thumb = $this->resizeImage($source_img, $path_thumb, $filename_thumb, $aGallery['thumb_width'], $aGallery['thumb_height'], $aGallery['thumb_priority_side']);
-//			$filename_thumb = $this->resizeImage($dir_imgs, $img['file'], $path_thumb, $filename_thumb, $aGallery['thumb_width'], $aGallery['thumb_height'], $aGallery['thumb_priority_side'], 70);
+			foreach ($aImages as $img) {
+				$source_img['tmp_name'] = $path_imgs.$img['file'];
+				$source_img['name'] = $img['file'];
 
-			if ($filename_thumb) {
-				$update = array();
-				$update['file_thumb'] = $filename_thumb;
-				$update['thumb_width'] = $aGallery['thumb_width'];
-				$update['thumb_height'] = $aGallery['thumb_height'];
-				$update['date_update'] = 1;
-				if (!$this->tables['images']->updateRow($img['id'], $update, DONT_UPDATE_ALL_FIELDS_OF_TABLE))
-					$this->msg->setError('Ошибка при сохранении данных миниатюры "'.$filename_thumb.'"');
-			}
-			else {
-				$this->msg->setError('Ошибка при создании миниатюры изображения "'.$filename_thumb.'"');
+				$filename_thumb = $img['id'].'_'.$aGallery['thumb_width'].'x'.$aGallery['thumb_height'];
+				$filename_thumb = $this->resizeImage($source_img, $path_thumb, $filename_thumb, $aGallery['thumb_width'], $aGallery['thumb_height'], $aGallery['thumb_priority_side']);
+	//			$filename_thumb = $this->resizeImage($dir_imgs, $img['file'], $path_thumb, $filename_thumb, $aGallery['thumb_width'], $aGallery['thumb_height'], $aGallery['thumb_priority_side'], 70);
+
+				if ($filename_thumb) {
+					$update = array();
+					$update['file_thumb'] = $filename_thumb;
+					$update['thumb_width'] = $aGallery['thumb_width'];
+					$update['thumb_height'] = $aGallery['thumb_height'];
+					$update['date_update'] = 1;
+					if (!$this->tables['images']->updateRow($img['id'], $update, DONT_UPDATE_ALL_FIELDS_OF_TABLE))
+						$this->msg->setError('Ошибка при сохранении данных миниатюры "'.$filename_thumb.'"');
+				}
+				else {
+					$this->msg->setError('Ошибка при создании миниатюры изображения "'.$filename_thumb.'"');
+				}
 			}
 		}
+
 		if (!$this->msg->keep)
 			return 1;
-	
+
 		return 0;
 	}
 
@@ -874,30 +877,41 @@ class CSeagullGallery extends CSeagullModule {
 	}
 
 	function check_dir($path, $make=1) { //--------------------------------
-		
+// echo 'check_dir:'.$path.'   ';
 //	Проверка и создание папки галерей
-		$r = file_exists(SITE_ROOT.$this->config->galleryDir);
-		if (!$r)
-			$r = mkdir(SITE_ROOT.$this->config->galleryDir, 0777);
+		$r = file_exists($path);
 
-		if ($r) {
+		if ($make and !$r) {
+			// echo 'before mkdir: '.substr(sprintf('%o', fileperms(SITE_ROOT.$this->config->galleryDir.'/thumb')), -4);
+			$r = mkdir($path, 0777);
+
+			if (!$r) {
+				$this->msg->setError('Ошибка создания папки "'.$path.'"');
+			}
+		} else {
+			$perms = substr(sprintf('%o', fileperms($path)), -4);
+
+			if ($perms !== '0777' and $perms !== '0775') {
+				// $r = chmod($path, 0777);
+				$r = 0;
+				$this->msg->setError('Необходимо изменить права доступа к папке '.$path);
+			}
+		}
+
+		return $r;
+	}
+
+	function check_dirs($path, $make=1) { //--------------------------------
+
+//	Проверка и создание папки галерей
+		$r = $this->check_dir(SITE_ROOT.$this->config->galleryDir, $make);
 //	Проверка и создание папки миниатюр
-			$r = file_exists(SITE_ROOT.$this->config->galleryDir.'/thumb');
-			if (!$r)
-				$r = mkdir(SITE_ROOT.$this->config->galleryDir.'/thumb', 0777);
+		$r &= $this->check_dir(SITE_ROOT.$this->config->galleryDir.'/thumb', $make);
 
 //	Проверка и создание папки по пути
 			if ($r) {
-				$path = SITE_ROOT.$this->config->galleryDir.$path;
-				$r = file_exists($path);
-	//echo $path;
-				if ($make and !$r) {
-					$r = mkdir($path, 0777);
-					if (!$r)
-						echo 'Ошибка создания папки "'.SITE_ROOT.$this->config->galleryDir.$path.'"';
-				}
+				$r = $this->check_dir(SITE_ROOT.$this->config->galleryDir.$path, $make);
 			}
-		}
 
 		return $r;
 	}
@@ -1022,10 +1036,26 @@ class CSeagullGallery extends CSeagullModule {
 						$img['desc_align'] = ' thumb__desc_'.(($gal['align'] === 'global') ? $this->config->description->align : $gal['align']);
 						$output .= $this->parseContent($tpl, $img);
 					}
-					$output = '<div class="gallery">'.$output.'</div>';
-					
+					$output = '<div class="gallery gallery-thumbs">'.$output.'</div>';
+
 				break;
-				
+
+				case 'slider':
+					$tpl = $this->getTpl('frontend/gallery-slider__img');
+
+					foreach ($arr as $img) {
+						$img['path'] = $this->config->galleryDir.'/'.$img['gallery_id'].'/'.$img['file'];
+						$img['path_thumb'] = $this->config->galleryDir.'/thumb/'.$img['gallery_id'].'/'.$img['file_thumb'];
+						$img['title'] = htmlspecialchars($img['title']);
+						$img['description'] = htmlspecialchars($img['description']);
+						$img['html_param'] = $gal['html_param'];
+						$img['desc_align'] = ' thumb__desc_'.(($gal['align'] === 'global') ? $this->config->description->align : $gal['align']);
+						$output .= $this->parseContent($tpl, $img);
+					}
+					$output = '<div class="gallery gallery-slider slides">'.$output.'</div>';
+
+				break;
+
 				case 'images':
 					foreach ($arr as $img) {
 						$img['path'] = $this->config->galleryDir.'/'.$img['gallery_id'].'/'.$img['file'];
@@ -1174,7 +1204,8 @@ class CSeagullGallery extends CSeagullModule {
 		$arr = array(
 			array('name'=>'images','title'=>'Большие изображения','val'=>1),
 			array('name'=>'thumbs','title'=>'Миниатюры','val'=>0),
-			array('name'=>'image_and_thumbs','title'=>'Большое изображение и миниатюры','val'=>0)
+			array('name'=>'image_and_thumbs','title'=>'Большое изображение и миниатюры','val'=>0),
+			array('name'=>'slider','title'=>'Слайдер','val'=>0)
 		);
 		$r &= (boolean)$this->config->setVariable('galleryViewDefault', $arr, $this->nameModule, NULL, 'S', 'Вид отображения галереи', '240px');
 		$r &= (boolean)$this->config->setVariable('galleryDir', '/assets/gallery', $this->nameModule, NULL, 'T', 'Папка для галерей', '240px');
@@ -1251,7 +1282,7 @@ class CSeagullGallery extends CSeagullModule {
 					`align` enum('left','center','right','global') NOT NULL DEFAULT 'global',
 					`valign` enum('top','bottom','global') NOT NULL DEFAULT 'global',
 					`published` enum('0','1') NOT NULL DEFAULT '1',
-					`type_view` enum('images','thumbs','image_and_thumbs') NOT NULL DEFAULT 'thumbs',
+					`type_view` enum('images','thumbs','image_and_thumbs','slider') NOT NULL DEFAULT 'thumbs',
 					`count_img` int(10) unsigned DEFAULT NULL,
 					`default_img` int(10) unsigned DEFAULT NULL,
 					`show_desc_img` enum('0','1') NOT NULL DEFAULT '1',
