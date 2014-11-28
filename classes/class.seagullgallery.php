@@ -11,6 +11,7 @@
 //error_reporting(E_ALL);
 define('FULL_TABLE', 1);
 define('TBODY', 2);
+define('DIR_WRITE_TRUE', true);
 
 require_once($_SERVER['DOCUMENT_ROOT'].'/assets/modules/seagulllibrary/class.seagullmodule.php');
 
@@ -876,7 +877,7 @@ class CSeagullGallery extends CSeagullModule {
 		return $path;
 	}
 
-	function check_dir($path, $make=1) { //--------------------------------
+	function check_dir($path, $make = 1, $check_write = false) { //--------------------------------
 // echo 'check_dir:'.$path.'   ';
 //	Проверка и создание папки галерей
 		$r = file_exists($path);
@@ -889,12 +890,14 @@ class CSeagullGallery extends CSeagullModule {
 				$this->msg->setError('Ошибка создания папки "'.$path.'"');
 			}
 		} else {
-			$perms = substr(sprintf('%o', fileperms($path)), -4);
+			if ($check_write === DIR_WRITE_TRUE) {
+				$perms = substr(sprintf('%o', fileperms($path)), -4);
 
-			if ($perms !== '0777' and $perms !== '0775') {
-				// $r = chmod($path, 0777);
-				$r = 0;
-				$this->msg->setError('Необходимо изменить права доступа к папке '.$path);
+				if ($perms !== '0777' and $perms !== '0775') {
+					// $r = chmod($path, 0777);
+					$r = 0;
+					$this->msg->setError('Необходимо изменить права доступа к папке '.$path);
+				}
 			}
 		}
 
@@ -904,11 +907,11 @@ class CSeagullGallery extends CSeagullModule {
 	function check_dirs($path, $make=1) { //--------------------------------
 
 //	Проверка и создание папки галерей
-		$r = $this->check_dir(SITE_ROOT.$this->config->galleryDir, $make);
+		$r = $this->check_dir(SITE_ROOT.$this->config->galleryDir, $make, DIR_WRITE_TRUE);
 //	Проверка и создание папки миниатюр
-		$r &= $this->check_dir(SITE_ROOT.$this->config->galleryDir.'/thumb', $make);
+		$r &= $this->check_dir(SITE_ROOT.$this->config->galleryDir.'/thumb', DIR_WRITE_TRUE);
 
-//	Проверка и создание папки по пути
+//	Проверка и создание папки для пути
 			if ($r) {
 				$r = $this->check_dir(SITE_ROOT.$this->config->galleryDir.$path, $make);
 			}
