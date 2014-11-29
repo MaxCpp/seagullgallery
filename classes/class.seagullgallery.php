@@ -9,8 +9,9 @@
 
 //ini_set('display_errors',1);
 //error_reporting(E_ALL);
-define('FULL_TABLE', 1);
-define('TBODY', 2);
+define('BROWSER_FULL_TABLE', 'table');
+define('BROWSER_TBODY', 'tbody');
+define('BROWSER_GRID', 'grid');
 define('DIR_WRITE_TRUE', true);
 
 require_once($_SERVER['DOCUMENT_ROOT'].'/assets/modules/seagulllibrary/class.seagullmodule.php');
@@ -65,8 +66,15 @@ class CSeagullGallery extends CSeagullModule {
 					'table_hidden'=>true
 					);
 
+		$columns['browser_view'] = array(
+					'title'=>'Вид галереи в админке',
+					'form_fieldType'=>'radio',
+					'values'=>array('table'=>'Таблица', 'grid'=>'Миниатюры'),
+					'table_hidden'=>true
+					);
+
 		$columns['type_view'] =	array(
-					'title'=>'Внешний вид галереи',
+					'title'=>'Внешний вид галереи на сайте',
 					'form_fieldType'=>'select',
 					'values'=>array('thumbs'=>'Миниатюры с увеличением', 'images'=>'Большие изображения', 'image_and_thumbs'=>'Большое изображение и прокручиваемый список миниатюр', 'slider'=>'Слайдер'),
 					'table_hidden'=>true
@@ -351,7 +359,8 @@ class CSeagullGallery extends CSeagullModule {
 			break;
 
 			case 'editGallery':
-				$this->ph['images_list'] = $this->renderImages($_POST['itemID']);
+				$this->init($_POST['itemID']);
+				$this->ph['images_list'] = $this->renderImages($_POST['itemID'], NULL, $this->browser_view);
 				$this->ph['paginator_links'] = $this->tables['images']->renderPaginator(1, array('param'=>'imgs'.$_POST['itemID'], 'query'=>'SELECT COUNT(*) FROM '.$this->tables['images']->table.' WHERE `gallery_id`='.$_POST['itemID'], 'limit'=>$this->config->backend->paginatorImg->rowsByPage, 'advLinks'=>$this->config->backend->paginatorImg->advLinks));
 				$this->ph['gallery_id'] = $_POST['itemID'];
 				$this->file_tpl = 'editgallery';
@@ -948,7 +957,7 @@ class CSeagullGallery extends CSeagullModule {
 			return 0;
 	}
 
-	function renderImages($gid, $pageID=NULL, $typeView=FULL_TABLE) { //--------------------------------
+	function renderImages($gid, $pageID=NULL, $typeView=BROWSER_FULL_TABLE) { //--------------------------------
 		$path = $this->getGalleryPath($gid);
 
 		if (isset($this->config->backend->paginatorImg->rowsByPage)) {
@@ -957,22 +966,46 @@ class CSeagullGallery extends CSeagullModule {
 		}
 
 		$arr = $this->tables['images']->getRows($this->tables['images']->table_mysql_select, '`gallery_id`='.$gid, NULL, $limit);
+
 		if ($arr) {
 //		ea($arr);
-			foreach ($arr as $colname=>$column) {
-				$gDir = $this->config->galleryDir.$path.'/'.$column['file'];
-				$output .= '<tr id="img'.$column['id'].'">
-								<td><input class="img_select" type="checkbox" name="imgs_select[]" value="'.$column['id'].'" /></td>
-								<td><a class="img-download" target="_blank" href="/assets/modules/seagullgallery/download.php?file='.$gDir.'"></a><img src="'.$this->config->galleryDir.'/thumb'.$path.'/'.$column['file_thumb'].'" height="60" title="'.$gDir.'" alt="image '.$column['id'].'" /></td>
-								<td class="tsort__dragHandle"></td>
-								<td class="col-edit"><span class="b-td__title">'.$column['title'].'</span><div class="b-td__desc">'.$column['description'].'</div></td>
-								<td class="tr">'.round($column['size']/1024).' КБ</td>
-								<td>'.$column['date_update'].'</td>
-							</tr>';
-			}
+			switch ($typeView) {
+				case BROWSER_FULL_TABLE:
+				case BROWSER_TBODY:
+					foreach ($arr as $img) {
+						$gDir = $this->config->galleryDir.$path.'/'.$img['file'];
+						$output .= '<tr id="img'.$img['id'].'">
+										<td><input class="img_select" type="checkbox" name="imgs_select[]" value="'.$img['id'].'" /></td>
+										<td><a class="img-download" target="_blank" href="/assets/modules/seagullgallery/download.php?file='.$gDir.'"></a><img src="'.$this->config->galleryDir.'/thumb'.$path.'/'.$img['file_thumb'].'" height="60" title="'.$gDir.'" alt="image '.$img['id'].'" /></td>
+										<td class="tsort__dragHandle"></td>
+										<td class="col-edit"><span class="b-td__title">'.$img['title'].'</span><div class="b-td__desc">'.$img['description'].'</div></td>
+										<td class="tr">'.round($img['size']/1024).' КБ</td>
+										<td>'.$img['date_update'].'</td>
+									</tr>';
+					}
 
-			if ($typeView === FULL_TABLE)
-				$output = '<table '.$this->tables['images']->table_param.'>'.$this->tables['images']->renderTableHead().'<tbody>'.$output.'</tbody></table>';
+					if ($typeView === BROWSER_FULL_TABLE)
+						$output = '<table '.$this->tables['images']->table_param.'>'.$this->tables['images']->renderTableHead().'<tbody>'.$output.'</tbody></table>';
+				break;
+
+				case BROWSER_GRID:
+					foreach ($arr as $img) {
+                        $gDir = $this->config->galleryDir.$path.'/'.$img['file'];
+						$img['path'] = $this->config->galleryDir.$path.'/'.$img['file'];
+						$img['path_thumb'] = $this->config->galleryDir.'/thumb'.$path.'/'.$img['file_thumb'];
+						$img['title'] = htmlspecialchars($img['title']);
+						$img['description'] = htmlspecialchars($img['description']);
+						$img['html_param'] = $gal['html_param'];
+						$img['desc_align'] = ' thumb__desc_'.(($gal['align'] === 'global') ? $this->config->description->align : $gal['align']);
+						// $output .= $this->parseContent($tpl, $img);
+						$output .= '<div id="img'.$img['id'].'" class="gallery-grid-item"><a class="img-download" target="_blank" href="/assets/modules/seagullgallery/download.php?file='.$gDir.'"></a><img src="'.$img['path_thumb'].'" title="'.$gDir.'"><input class="img_select" type="checkbox" name="imgs_select[]" value="'.$img['id'].'" /></div>';
+					}
+					$output = '<div class="gallery-grid">'.$output.'</div>';
+				break;
+
+				default:
+				break;
+			}
 			return $output;
 		}
 		else {
@@ -1079,7 +1112,7 @@ class CSeagullGallery extends CSeagullModule {
 
 	function renderTableCKEditor() {
 		$output = '';
-		$arr = sql2table('SELECT `id`, `title` FROM '.$this->tables['galleries']->table.' ORDER BY `sort_id`');
+        $arr = sql2table('SELECT `id`, `title` FROM '.$this->tables['galleries']->table.' ORDER BY `id`');
 
 		if ($arr) {
 			foreach ($arr as $gal) {
@@ -1197,6 +1230,14 @@ class CSeagullGallery extends CSeagullModule {
 		if ($r)
 			return 1;
 		return 0;
+	}
+
+	function changeBrowserView() { //--------------------------------
+        // ea($_POST);
+        $aData['itemID'] = $_POST['itemID'];
+        $aData['browser_view'] = $_POST['view'];
+        $r = $this->tables['galleries']->updateRow($aData['itemID'], $aData, DONT_UPDATE_ALL_FIELDS_OF_TABLE);
+        return $r;
 	}
 
 	function install() { //--------------------------------

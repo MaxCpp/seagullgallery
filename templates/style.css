@@ -44,14 +44,6 @@ form input:read-only, form select:read-only, form textarea:read-only {
 .tsort .showDragHandle {
 	background: transparent url('../../seagulllibrary/css/images/move.png') no-repeat center center;
 }
-.b-table tbody tr:hover .img-download {
-	display: block;
-	width: 16px;
-	height: 16px;
-	position: absolute;
-	margin: 4px;
-	background: url('../../seagulllibrary/css/images/save_16.gif') no-repeat center center;
-}
 
 /* upload images */
 .b-progress {
@@ -75,6 +67,62 @@ form input:read-only, form select:read-only, form textarea:read-only {
 	text-align: center;
 	top: 3px;
 	width: 100%;
+}
+
+.b-table tbody tr:hover .img-download,
+.gallery-grid-item:hover .img-download {
+	display: block;
+	width: 16px;
+	height: 16px;
+	position: absolute;
+	margin: 4px;
+	background: url('../../seagulllibrary/css/images/save_16.gif') no-repeat center center;
+}
+
+.ui-dialog .ui-dialog-content {
+	padding: 0;
+}
+.dialog-select-gallery button.ui-button {
+	width: auto;
+}
+.gallery-grid {
+	margin-top: 15px;
+}
+.gallery-grid-item {
+	display: inline-block;
+	vertical-align: top;
+	margin: 0 15px 13px 0;
+	padding: 4px;
+	border: 1px solid transparent;
+	font: 0px/0 a;
+	text-align: center;
+	border-radius: 5px;
+	width: 150px;
+	height: 100px;
+	line-height: 100px;
+	cursor: url('images/zoomin.cur'), auto;
+	background: #FFF;
+	transition: all .1s linear;
+}
+.gallery-grid-item img {
+	max-width: 100%;
+	max-height: 100%;
+	margin: 0;
+	border-radius: 3px;
+	vertical-align: middle;
+}
+.gallery-grid-item .img_select {
+	display: none;
+}
+.gallery-grid-item:hover {
+	border: 1px solid #b7b7b7;
+	box-shadow: 0 0 3px rgba(0,0,0,.2);
+}
+.gallery-grid-item_selected_yes:hover,
+.gallery-grid-item_selected_yes {
+	border: 1px solid #b00;
+	background: #FFC4C4;
+	box-shadow: 0 0 0 2px #a00;
 }
 
 /* timepicker */

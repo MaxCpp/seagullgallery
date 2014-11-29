@@ -3,11 +3,33 @@
 *	Last update: 2012-03-21
 */
 var ajaxurl = '/assets/modules/seagullgallery/ajax.php';
-var arrSelect = [];
+var arrSelectImages = [];
 
 $(document).ready(function() {
-	allLockBtns = $('#btn-del-imgs');
+	allLockBtns = $('#btn-del-imgs, #btn-copy-imgs');
 	allLockBtns.addClass('disabled');
+
+//  BROWSER VIEW
+    $('.btn-browser-view').click(function() {
+
+        $.ajax({ type:'POST', url:ajaxurl, timeout:5000, dataType:'json',
+            data: {cmd:'changeBrowser', view:$(this).data('view'), itemID:$('#ff-gid').val()},
+            success: function(data){
+                msg.showAjax(data);
+
+                if (data.msgType === 'info') {
+                    $(this).oneTime('1s', function() {
+                        postForm('editGallery', $('#ff-gid').val());
+                    });
+                }
+            },
+            error: function(data){
+                showMsg('Ошибка при отправке запроса', 'error');
+            }
+        });
+
+        return false;
+    });
 
 // SORT TABLE ---------------------------
 	$("table.tsort").tableDnD({
@@ -41,20 +63,42 @@ $(document).ready(function() {
 	});
 
 //	SELECT IMAGES ------------------------
-	$(document).on('click', '.img_select', function() {
+	$(document).on('click', '.b-table .img_select', function() {
 		var selTR = $(this).parent('td').parent('tr');
 		var selID = selTR.prop('id');
 
-		if (arrSelect.in_array(selID)) arrSelect.splice(arrSelect.indexOf(selID), 1);
-		else arrSelect.push(selID);
+		if (arrSelectImages.in_array(selID)) arrSelectImages.splice(arrSelectImages.indexOf(selID), 1);
+		else arrSelectImages.push(selID);
 
-		if (arrSelect.length === 0)	allLockBtns.addClass('disabled');
+		if (arrSelectImages.length === 0)	allLockBtns.addClass('disabled');
 		else allLockBtns.removeClass('disabled');
 
 		if ($(this).prop('checked') == true) selTR.addClass('row-selected');
 		else selTR.removeClass('row-selected');
 
 	});
+
+	$(document).on('click', '.gallery-grid-item', function() {
+		var selID = $(this).attr('id');
+		var checked = $(this).children('.img_select');
+
+		if (arrSelectImages.in_array(selID)) {
+			arrSelectImages.splice(arrSelectImages.indexOf(selID), 1);
+			$(this).removeClass('gallery-grid-item_selected_yes');
+		}
+		else {
+			arrSelectImages.push(selID);
+			$(this).addClass('gallery-grid-item_selected_yes');
+			checked.prop('checked', true);
+		}
+
+		if (arrSelectImages.length === 0)	allLockBtns.addClass('disabled');
+		else allLockBtns.removeClass('disabled');
+	});
+
+	// $('.gallery-grid-item').dblclick(function() {
+	// 	console.log('dbl click');
+	// });
 
 //	UPLOAD IMAGES ------------------------
 	var bar = $('.b-progress__bar');
@@ -111,6 +155,57 @@ $(document).ready(function() {
 //			Скрытие/отключение разных кнопок, чтобы не возникало конфликтов
 //			guiStatus('lock');
 		}, 'json');
+		return false;
+	});
+
+//	IMAGES COPY TO GALLERY ------------------------
+    $('#dialog-select-gallery').dialog({
+        autoOpen: false,
+        height: 500,
+        width: 450,
+        modal: true,
+        buttons: {
+            'Скопировать изображение(я)': function() {
+                console.log('copy');
+                $.ajax({ type:'POST', url:ajaxurl, timeout:5000, dataType:'json',
+                    data: {cmd:'copyImages', gid:$('.selectGallery:checked').val(), imgs:arrSelectImages},
+                    success: function(data) {
+                        msg.showAjax(data);
+                        // $('#table-select-gallery').html(data.tbody);
+                    },
+                    error: function(data) {
+                        msg.show('Ошибка при отправке запроса', 'error');
+                    }
+                });
+            },
+            'Закрыть': function() {
+                $(this).dialog( "close" );
+            }
+        },
+        close: function() {
+            // form[0].reset();
+            // allFields.removeClass("ui-state-error");
+        }
+    });
+
+	$('#btn-copy-imgs').click(function() {
+
+		$.ajax({ type:'POST', url:ajaxurl, timeout:5000, dataType:'json',
+			data: {cmd: 'ckeditorSelectGallery'},
+			success: function(data){
+				$('#table-select-gallery').html(data.tbody);
+			},
+			error: function(data){
+				showMsg('Ошибка при отправке запроса', 'error');
+			}
+		});
+
+		$('#table-select-gallery').on('click', 'tr.row-edit', function() {
+			$(this).children('td').eq(0).children('input').prop('checked', true);
+		});
+
+        $('#dialog-select-gallery').dialog('open');
+
 		return false;
 	});
 

@@ -10,13 +10,15 @@
 	[+paginator_links+]
 	<ul class="actionButtons">
 		<li><a href="#" onclick="postForm(); return false;"><img alt="icons_delete_document" src="/assets/modules/seagulllibrary/css/images/back.png" /> назад</a></li>
-		<li class="actionButtons-left"><a id="btn-add-imgs" href="#"><img src="media/style[+theme+]/images/icons/add.png" /> Добавить изображения</a></li>
-		<li class="actionButtons-right"><a id="btn-del-imgs" href="#"><img alt="icons_delete_document" src="media/style/MODxCarbon/images/icons/delete.png" /> Удалить изображения</a></li>
+		<li class="actionButtons-left"><a href="#" id="btn-add-imgs"><img src="media/style[+theme+]/images/icons/add.png" /> Добавить изображения</a></li>
+		<li class="actionButtons-middle"><a href="#" id="btn-del-imgs"><img alt="icons_delete_document" src="media/style/MODxCarbon/images/icons/delete.png" /> Удалить изображения</a></li>
 		<li class="actionButtons-left"><a href="#" onclick="postForm('configGallery'); return false;"><img src="../assets/modules/seagulllibrary/css/images/config.png" /> Настройки</a></li>
 		<li class="actionButtons-right"><a href="#" onclick="ajaxDel('delGallery', [+gallery_id+]); return false;"><img alt="icons_delete_document" src="media/style/MODxCarbon/images/icons/delete.png" /> Удалить галерею</a></li>
+		<li class="actionButtons-left"><a href="#" class="btn-browser-view" data-view="table"><img src="media/style[+theme+]/images/icons/list.svg" /> </a></li>
+		<li class="actionButtons-right"><a href="#" class="btn-browser-view" data-view="grid"><img src="media/style[+theme+]/images/icons/grid.svg" /> </a></li>
 	</ul>
 
-	<form id="f-upload" action="" method="post" enctype="multipart/form-data">
+	<form id="f-upload" action="" method="post" enctype="multipart/form-data" style="display:none">
 		<input id="btn-selectfiles" style="position:absolute; z-index:-10" type="file" name="imgs[]" multiple />
 		<input type="hidden" name="cmd" value="addimgs" />
 		<input type="hidden" name="itemID" value="[+gallery_id+]" />
@@ -31,6 +33,7 @@
 		[+images_list+]
 	</form>
 	[+paginator_links+]
+
 	<div id="form-container" style="display:none">
 		<form id="f-image" method="post" enctype="multipart/form-data">
 			<p>
@@ -56,6 +59,13 @@
 			</p>
 		</form>
 	</div>
+
+	<div id="dialog-select-gallery" title="Выбери галерею">
+		<form>
+			<table class="b-table" style="width:100%"><thead><tr><td style="width:20px"></td><td>#</td><td>Название</td></tr></thead><tbody id="table-select-gallery"></tbody></table>
+		</form>
+	</div>
+
 	<form name="module" method="post">
 		<input name="cmd" type="hidden" value="" />
 		<input id="ff-gid" name="itemID" type="hidden" value="[+gallery_id+]" />

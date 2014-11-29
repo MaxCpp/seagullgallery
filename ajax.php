@@ -55,7 +55,7 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && !empty($_SERVER['HTTP_X_REQUESTE
 		case 'getimg': {
 			$_POST['id'] = str_replace('img', '', $_POST['id']);
 			$r = $sg->getImage($_POST['id']);
-			
+
 			if ($r) {
 				$response['obj'] = $r;
 			}
@@ -84,6 +84,15 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && !empty($_SERVER['HTTP_X_REQUESTE
 		case 'delGallery':
 			if ($sg->delGallery($_POST['itemID'])) {
 				$msg->setInfo('Галерея удалена');
+				$msg->setReload();
+			}
+			else
+				$msg->setError('Ошибка при удалении изображения(й)');
+		break;
+
+		case 'changeBrowser':
+			if ($sg->changeBrowserView($_POST['view'])) {
+				$msg->setInfo('Смена отображения');
 				$msg->setReload();
 			}
 			else
