@@ -29,6 +29,11 @@ $(document).ready(function() {
 	$('#f-add-gallery').ajaxForm({ url:ajaxurl, dataType:'json',
 		success: function(data) {
 			msg.showAjax(data);
+
+			$(this).oneTime('1s', function() {
+				postForm('editGallery', data.gallery_id);
+			});
+
 		},
 		error: function(data){
 			msg.show('Ошибка при отправке запроса', 'error');

@@ -473,9 +473,11 @@ class CSeagullGallery extends CSeagullModule {
 
 					if ($r) {
 						$this->msg->setOk('Галерея добавлена');
+						$this->msg->setVar('gallery_id', $gallery_id);
 					}
-					else
+					else {
 						$this->msg->setError('Ошибка сохранения в БД');
+					}
 					return $gallery_id;
 				}
 				else {
