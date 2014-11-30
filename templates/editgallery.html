@@ -6,12 +6,13 @@
 </head>
 <body>
 	<div id="js-msg" class="msg [+msgType+]"><div class="msg__text">[+msg+]</div></div>
-	<h1><a href="#" onclick="postForm(); return false;">[+title+]</a> > Галерея #[+gallery_id+]</h1>
+	<h1><a href="#" onclick="postForm(); return false;">[+title+]</a> > Галерея "[+gallery_title+]" ([+gallery_id+])</h1>
 	[+paginator_links+]
 	<ul class="actionButtons">
 		<li><a href="#" onclick="postForm(); return false;"><img alt="icons_delete_document" src="/assets/modules/seagulllibrary/css/images/back.png" /> назад</a></li>
 		<li class="actionButtons-left"><a href="#" id="btn-add-imgs"><img src="media/style[+theme+]/images/icons/add.png" /> Добавить изображения</a></li>
 		<li class="actionButtons-middle"><a href="#" id="btn-del-imgs"><img alt="icons_delete_document" src="media/style/MODxCarbon/images/icons/delete.png" /> Удалить изображения</a></li>
+		<li class="actionButtons-right"><a href="#" id="btn-copy-imgs"><img src="media/style/MODxCarbon/images/icons/page_white_copy.png" /> Скопировать</a></li>
 		<li class="actionButtons-left"><a href="#" onclick="postForm('configGallery'); return false;"><img src="../assets/modules/seagulllibrary/css/images/config.png" /> Настройки</a></li>
 		<li class="actionButtons-right"><a href="#" onclick="ajaxDel('delGallery', [+gallery_id+]); return false;"><img alt="icons_delete_document" src="media/style/MODxCarbon/images/icons/delete.png" /> Удалить галерею</a></li>
 		<li class="actionButtons-left"><a href="#" class="btn-browser-view" data-view="table"><img src="media/style[+theme+]/images/icons/list.svg" /> </a></li>
@@ -62,7 +63,7 @@
 
 	<div id="dialog-select-gallery" title="Выбери галерею">
 		<form>
-			<table class="b-table" style="width:100%"><thead><tr><td style="width:20px"></td><td>#</td><td>Название</td></tr></thead><tbody id="table-select-gallery"></tbody></table>
+			<table class="b-table" style="width:100%"><thead><tr><td style="width:20px"></td><td>#</td><td>Название</td><td>Кол-во изображений</td></tr></thead><tbody id="table-select-gallery"></tbody></table>
 		</form>
 	</div>
 

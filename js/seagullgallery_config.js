@@ -56,6 +56,7 @@ $(document).ready(function() {
 		$.post(ajaxurl, {cmd:'resizeThumbs', itemID:$('#ff-gid').val()}, function(data) {
 			msg.showAjax(data);
 		}, 'json');
+		return false;
 	});
 
 	$('#btn-clear-tables').click(function() {

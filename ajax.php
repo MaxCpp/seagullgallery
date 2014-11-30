@@ -106,6 +106,13 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && !empty($_SERVER['HTTP_X_REQUESTE
 				$msg->setError('Ошибка при сортировке');
 		break;
 
+		case 'copyImages':
+			if ($sg->copyImages($_POST['fromGalID'], $_POST['toGalID'], $_POST['imgs']))
+				$msg->setOk('Изображение(я) скопированы');
+			else
+				$msg->setError('Ошибка при копировании');
+		break;
+
 		case 'resizeThumbs':
 			if ($sg->resizeThumbs($_POST['itemID']))
 				$msg->setOk('Миниатюры пересчитаны');

@@ -168,7 +168,12 @@ $(document).ready(function() {
             'Скопировать изображение(я)': function() {
                 console.log('copy');
                 $.ajax({ type:'POST', url:ajaxurl, timeout:5000, dataType:'json',
-                    data: {cmd:'copyImages', gid:$('.selectGallery:checked').val(), imgs:arrSelectImages},
+                    data: {
+                        cmd:'copyImages',
+                        fromGalID:$('#ff-gid').val(),
+                        toGalID:$('.selectGallery:checked').val(),
+                        imgs:arrSelectImages
+                    },
                     success: function(data) {
                         msg.showAjax(data);
                         // $('#table-select-gallery').html(data.tbody);
