@@ -82,6 +82,9 @@ form input:read-only, form select:read-only, form textarea:read-only {
 .ui-dialog .ui-dialog-content {
 	padding: 0;
 }
+#dialog-select-gallery button.ui-button {
+	display: none;
+}
 .dialog-select-gallery button.ui-button {
 	width: auto;
 }
