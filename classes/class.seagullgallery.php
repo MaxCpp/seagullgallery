@@ -1,5 +1,7 @@
 <?php
-/*	Class SeagullGallery 0.0.7
+/*	Class SeagullGallery 0.0.8
+	Date update 0.0.8: 2014-12-07
+		- save size thumbs in BD
 	Date update 0.0.7: 2014-11-30
 		- copy image from gallery to gallery
 	Date update 0.0.6: 2014-04-11
@@ -614,15 +616,11 @@ class CSeagullGallery extends CSeagullModule {
 	}
 
 	function resizeImage($sourceImage, $newpath, $newfilename, $newwidth=100, $newheight=100, $priority_side='w', $quality=93) { //--------------------------------
+		$output = [];
 
         if ($sourceImage) {
 			$pathinfo = pathinfo($sourceImage['name']);
 			$ext = strtolower($pathinfo['extension']);
-
-			if (empty($newfilename))
-				$newfilename = $sourceImage['name'];
-			else
-				$newfilename = $newfilename.'.'.$ext;
 
 			list($width, $height) = getimagesize($sourceImage['tmp_name']);
 
@@ -630,16 +628,16 @@ class CSeagullGallery extends CSeagullModule {
 				$ratio = $width/$height;
 
 				if ($newwidth==0 or $priority_side==='h') {
-					$newwidth = $newheight * $ratio;
+					$newwidth = round($newheight * $ratio);
 				}
 				elseif ($newheight==0 or $priority_side==='w') {
-					$newheight = $newwidth / $ratio;
+					$newheight = round($newwidth / $ratio);
 				}
 				$img_create= imagecreatetruecolor($newwidth, $newheight);
 				// imageantialias($img_create, true);
 
 				switch ($ext) {
-					case 'jpg': $img_source = imagecreatefromjpeg($sourceImage['tmp_name']);	break;
+					case 'jpg': $img_source = imagecreatefromjpeg($sourceImage['tmp_name']); break;
 					case 'gif': $img_source = imagecreatefromgif($sourceImage['tmp_name']);	break;
 					case 'png': $img_source = imagecreatefrompng($sourceImage['tmp_name']);	break;
 				}
@@ -655,6 +653,15 @@ class CSeagullGallery extends CSeagullModule {
 				// 	// $img_create = $this->createWatermark($img_create, $this->config->watermark);
 				// }
 
+				if (empty($newfilename))
+					$newfilename = $sourceImage['name'].'.'.$ext;
+				else
+					$newfilename = $newfilename.'_'.$newwidth.'x'.$newheight.'.'.$ext;
+
+				$output['width'] = $newwidth;
+				$output['height'] = $newheight;
+				$output['filename'] = $newfilename;
+
 				$imgfile = $newpath.'/'.$newfilename;
 				switch ($ext) {
 					case 'jpg': $r = imagejpeg($img_create, $imgfile, $quality);	break;
@@ -663,12 +670,21 @@ class CSeagullGallery extends CSeagullModule {
 				}
 
 				if ($r)
-					return $newfilename;
+					return $output;
 			}
 			else {
+				if (empty($newfilename))
+					$newfilename = $sourceImage['name'].'.'.$ext;
+				else
+					$newfilename = $newfilename.'_'.$width.'x'.$height.'.'.$ext;
+
+				$output['width'] = $width;
+				$output['height'] = $height;
+				$output['filename'] = $newfilename;
+
 				$imgfile = $newpath.'/'.$newfilename;
 				if (copy($sourceImage['tmp_name'], $imgfile))
-					return $newfilename;
+					return $output;
 			}
 		}
 		return 0;
@@ -749,14 +765,14 @@ class CSeagullGallery extends CSeagullModule {
 		$this->check_dirs($this->path);
 
 		$filename = $img_id;
-		$filename = $this->resizeImage($source_img, $newGalleryPath, $filename, $this->max_width, $this->max_height, $this->max_priority_side);
+		$image = $this->resizeImage($source_img, $newGalleryPath, $filename, $this->max_width, $this->max_height, $this->max_priority_side);
 
 		if ($filename) {
 			$imgData = array();
 			$imgData['sort_id'] = $this->count_img+1;
 			$imgData['title'] = $imgData['description'] = '';
-			$imgData['size'] = filesize(SITE_ROOT.$this->config->galleryDir.$this->path.'/'.$filename);
-			$imgData['file'] = $filename;
+			$imgData['size'] = filesize(SITE_ROOT.$this->config->galleryDir.$this->path.'/'.$image['filename']);
+			$imgData['file'] = $image['filename'];
 			$imgData['date_update'] = time();
 			// return $imgData;
 			$r = $this->tables['images']->updateRow($img_id, $imgData, DONT_UPDATE_ALL_FIELDS_OF_TABLE);
@@ -766,10 +782,10 @@ class CSeagullGallery extends CSeagullModule {
 				return $imgData;
 			}
 			else
-				$this->msg->setError('Ошибка при обновлении данных изображения '.$filename.' в БД');
+				$this->msg->setError('Ошибка при обновлении данных изображения '.$image['filename'].' в БД');
 		}
 		else
-			$this->msg->setError('Ошибка при копировании временного файла "'.$filename.'"');
+			$this->msg->setError('Ошибка при копировании временного файла "'.$image['filename'].'"');
 	}
 
 	function createThumb($img_id, $source_img=NULL) { //--------------------------------
@@ -788,15 +804,15 @@ class CSeagullGallery extends CSeagullModule {
 		$this->check_dirs('/thumb'.$this->path);
 
 		$source_img['tmp_name'] = SITE_ROOT.$this->config->galleryDir.$this->path.'/'.$source_img['name'];
-		$filename_thumb = $img_id.'_'.$this->thumb_width.'x'.$this->thumb_height;
+		$filename_thumb = $img_id;
 
-		$filename_thumb = $this->resizeImage($source_img, $thumbPath, $filename_thumb, $this->thumb_width, $this->thumb_height, $this->thumb_priority_side);
+		$thumb = $this->resizeImage($source_img, $thumbPath, $filename_thumb, $this->thumb_width, $this->thumb_height, $this->thumb_priority_side);
 
 		if ($filename_thumb) {
 			$thumbData = array();
-			$thumbData['file_thumb'] = $filename_thumb;
-			$thumbData['thumb_width'] = $this->thumb_width;
-			$thumbData['thumb_height'] = $this->thumb_height;
+			$thumbData['file_thumb'] = $thumb['filename'];
+			$thumbData['thumb_width'] = $thumb['width'];
+			$thumbData['thumb_height'] = $thumb['height'];
 			$thumbData['date_update'] = time();
 
 			$r = $this->tables['images']->updateRow($img_id, $thumbData, DONT_UPDATE_ALL_FIELDS_OF_TABLE);
@@ -804,6 +820,67 @@ class CSeagullGallery extends CSeagullModule {
 		}
 		else
 			$this->msg->setError('Ошибка при создании миниатюры "'.$filename_thumb.'"');
+	}
+
+
+	function resizeThumbs($gid) {
+
+//		Получаю массив изображений
+		$aImages = sql2table('SELECT `id`, `file` FROM '.$this->tables['images']->table." WHERE `gallery_id`=".$gid);
+
+//		Беру новые значения для миниатюр
+		$aGallery = retr_sql('SELECT `thumb_width`, `thumb_height`, `thumb_priority_side`, `path` FROM '.$this->tables['galleries']->table." WHERE `id`=$gid");
+//
+		if ($aGallery['thumb_width']==0)
+			$aGallery['thumb_width'] = $this->config->thumb->maxWidth;
+
+		if ($aGallery['thumb_height']==0)
+			$aGallery['thumb_height'] = $this->config->thumb->maxHeight;
+
+		$galPath = SITE_ROOT.$this->config->galleryDir.$aGallery['path'].'/';
+		$thumbPath = SITE_ROOT.$this->config->galleryDir.'/thumb'.$aGallery['path'];
+		$r = $this->check_dirs('/thumb'.$aGallery['path']);
+
+		if ($r) {
+//			Удаляю все миниатюры
+			cleardir($thumbPath, CLEAR_FILES);
+
+			foreach ($aImages as $img) {
+				$source_img['tmp_name'] = $galPath.$img['file'];
+				$source_img['name'] = $img['file'];
+
+				if (is_dir($source_img['tmp_name']) and file_exists($source_img['tmp_name'])) {
+					$source_img['tmp_name'] = $galPath.$img['id'].'.jpg';
+					$source_img['name'] = $img['id'].'.jpg';
+					if (!file_exists($source_img['tmp_name'])) {
+						$this->msg->setError('Проблема с записью в БД изображения №'.$img['id']);
+						continue;
+					}
+				}
+// ea($source_img);
+				$filename_thumb = $img['id'];
+				$thumb = $this->resizeImage($source_img, $thumbPath, $filename_thumb, $aGallery['thumb_width'], $aGallery['thumb_height'], $aGallery['thumb_priority_side']);
+	//			$filename_thumb = $this->resizeImage($dir_imgs, $img['file'], $thumbPath, $filename_thumb, $aGallery['thumb_width'], $aGallery['thumb_height'], $aGallery['thumb_priority_side'], 70);
+
+				if ($thumb) {
+					$update = array();
+					$update['file_thumb'] = $thumb['filename'];
+					$update['thumb_width'] = $thumb['width'];
+					$update['thumb_height'] = $thumb['height'];
+					$update['date_update'] = 1;
+					if (!$this->tables['images']->updateRow($img['id'], $update, DONT_UPDATE_ALL_FIELDS_OF_TABLE))
+						$this->msg->setError('Ошибка при сохранении данных миниатюры "'.$thumb['filename'].'"');
+				}
+				else {
+					$this->msg->setError('Ошибка при создании миниатюры изображения "'.$thumb['filename'].'"');
+				}
+			}
+		}
+
+		if (!$this->msg->keep)
+			return 1;
+
+		return 0;
 	}
 
 	function createWatermark($main_img_obj, $watermark) {
@@ -863,66 +940,6 @@ class CSeagullGallery extends CSeagullModule {
 	imagettftext($main_img_obj, $size, $angle, $x, $y, $c, $font, $text);
 	return $main_img_obj;
 }*/
-
-	function resizeThumbs($gid) {
-
-//		Получаю массив изображений
-		$aImages = sql2table('SELECT `id`, `file` FROM '.$this->tables['images']->table." WHERE `gallery_id`=".$gid);
-
-//		Беру новые значения для миниатюр
-		$aGallery = retr_sql('SELECT `thumb_width`, `thumb_height`, `thumb_priority_side`, `path` FROM '.$this->tables['galleries']->table." WHERE `id`=$gid");
-//
-		if ($aGallery['thumb_width']==0)
-			$aGallery['thumb_width'] = $this->config->thumb->maxWidth;
-
-		if ($aGallery['thumb_height']==0)
-			$aGallery['thumb_height'] = $this->config->thumb->maxHeight;
-
-		$galPath = SITE_ROOT.$this->config->galleryDir.$aGallery['path'].'/';
-		$thumbPath = SITE_ROOT.$this->config->galleryDir.'/thumb'.$aGallery['path'];
-		$r = $this->check_dirs('/thumb'.$aGallery['path']);
-
-		if ($r) {
-//			Удаляю все миниатюры
-			cleardir($thumbPath, CLEAR_FILES);
-
-			foreach ($aImages as $img) {
-				$source_img['tmp_name'] = $galPath.$img['file'];
-				$source_img['name'] = $img['file'];
-
-				if (is_dir($source_img['tmp_name']) and file_exists($source_img['tmp_name'])) {
-					$source_img['tmp_name'] = $galPath.$img['id'].'.jpg';
-					$source_img['name'] = $img['id'].'.jpg';
-					if (!file_exists($source_img['tmp_name'])) {
-						$this->msg->setError('Проблема с записью в БД изображения №'.$img['id']);
-						continue;
-					}
-				}
-// ea($source_img);
-				$filename_thumb = $img['id'].'_'.$aGallery['thumb_width'].'x'.$aGallery['thumb_height'];
-				$filename_thumb = $this->resizeImage($source_img, $thumbPath, $filename_thumb, $aGallery['thumb_width'], $aGallery['thumb_height'], $aGallery['thumb_priority_side']);
-	//			$filename_thumb = $this->resizeImage($dir_imgs, $img['file'], $thumbPath, $filename_thumb, $aGallery['thumb_width'], $aGallery['thumb_height'], $aGallery['thumb_priority_side'], 70);
-
-				if ($filename_thumb) {
-					$update = array();
-					$update['file_thumb'] = $filename_thumb;
-					$update['thumb_width'] = $aGallery['thumb_width'];
-					$update['thumb_height'] = $aGallery['thumb_height'];
-					$update['date_update'] = 1;
-					if (!$this->tables['images']->updateRow($img['id'], $update, DONT_UPDATE_ALL_FIELDS_OF_TABLE))
-						$this->msg->setError('Ошибка при сохранении данных миниатюры "'.$filename_thumb.'"');
-				}
-				else {
-					$this->msg->setError('Ошибка при создании миниатюры изображения "'.$filename_thumb.'"');
-				}
-			}
-		}
-
-		if (!$this->msg->keep)
-			return 1;
-
-		return 0;
-	}
 
 	function createPath($gallery_id) { //--------------------------------
 		global $tables, $config;
