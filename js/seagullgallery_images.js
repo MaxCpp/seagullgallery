@@ -24,7 +24,7 @@ $(document).ready(function() {
                 }
             },
             error: function(data){
-                showMsg('Ошибка при отправке запроса', 'error');
+                msg.show('Ошибка при отправке запроса', 'error');
             }
         });
 
@@ -201,7 +201,7 @@ $(document).ready(function() {
 				$('#table-select-gallery').html(data.tbody);
 			},
 			error: function(data){
-				showMsg('Ошибка при отправке запроса', 'error');
+				msg.show('Ошибка при отправке запроса', 'error');
 			}
 		});
 
